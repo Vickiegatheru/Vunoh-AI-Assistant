@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vunoh AI Dashboard</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; background: #f4f4f4; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        .risk-high { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Vunoh Global Diaspora Assistant</h1>
+
+    <div class="card">
+        <h3>New Request [cite: 27-28]</h3>
+        <form action="/process/" method="POST">
+            {% csrf_token %}
+            <textarea name="user_input" style="width:100%; height:80px;" placeholder="e.g. I need to verify my land title in Karen."></textarea>
+            <br><br>
+            <button type="submit">Submit to AI</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>Task Dashboard [cite: 76-77]</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th><th>Intent</th><th>Risk</th><th>Team</th><th>Status</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr>
+                    <td>{{ task.task_code }}</td>
+                    <td>{{ task.intent }}</td>
+                    <td class="{% if task.risk_score > 50 %}risk-high{% endif %}">{{ task.risk_score }}</td>
+                    <td>{{ task.assigned_to }}</td>
+                    <td>{{ task.status }}</td>
+                    <td>
+                        <select onchange="updateStatus('{{ task.id }}', this.value)">
+                            <option value="Pending" {% if task.status == 'Pending' %}selected{% endif %}>Pending</option>
+                            <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function updateStatus(taskId, newStatus) {
+            fetch(`/update/${taskId}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `status=${newStatus}&csrfmiddlewaretoken={{ csrf_token }}`
+            }).then(() => location.reload());
+        }
+    </script>
+</body>
+</html>
